@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weather-app
+  template:
+    metadata:
+      labels:
+        app: weather-app
+    spec:
+      containers:
+      - name: test-app
+        image: malekimeysam/weather-application:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: weather-app
+spec:
+  selector:
+    app: weather-app
+  ports:
+  - port: 5000
+    targetPort: 5000
+  type: ClusterIP
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: weather-app
+spec:
+  routes:
+  - kind: Rule
+    match: Host(`lab.app.com`)
+    priority: 10
+    services:
+    - kind: Service
+      name: weather-app
+      passHostHeader: true
+      port: 5000
